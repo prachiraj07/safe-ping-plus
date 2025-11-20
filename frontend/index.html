@@ -22,6 +22,9 @@
     
     <!-- Google Maps -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBNYUcZt-Y6i3mNHUMsmeRg1QM6BR3E-dg&libraries=places"></script>
+    
+    <!-- Particles.js -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 
     <style>
         * {
@@ -41,23 +44,68 @@
             --text-light: #134252;
             --text-dark: #F5F5F5;
             --border: rgba(94, 82, 64, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
         }
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--bg-light);
-    color: var(--text-light);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    
-}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Particles Container */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Animated background overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(252, 92, 125, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(71, 203, 124, 0.3) 0%, transparent 50%);
+            animation: mesh 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes mesh {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+            33% { transform: translate(30px, -30px) scale(1.1); opacity: 0.8; }
+            66% { transform: translate(-20px, 20px) scale(0.9); opacity: 0.7; }
+        }
 
         /* Loading Screen */
         #loading-screen {
             position: fixed;
             inset: 0;
-            background: var(--bg-light);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -66,12 +114,12 @@ body {
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(33, 128, 141, 0.2);
-            border-top-color: var(--primary);
+            width: 70px;
+            height: 70px;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
         }
 
         @keyframes spin {
@@ -85,83 +133,158 @@ body {
             padding: 20px;
             align-items: center;
             justify-content: center;
+            position: relative;
+            z-index: 2;
         }
 
         .auth-container {
-            max-width: 400px;
+            max-width: 440px;
             width: 100%;
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(30px);
+            padding: 52px;
+            border-radius: 28px;
+            box-shadow: 
+                0 30px 80px rgba(0, 0, 0, 0.35),
+                0 0 0 1px rgba(255, 255, 255, 0.15) inset,
+                0 0 60px rgba(102, 126, 234, 0.5);
+            animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .auth-container h1 {
-            color: var(--primary);
-            margin-bottom: 10px;
-            font-size: 28px;
+            background: linear-gradient(135deg, var(--primary), #1a5f6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 14px;
+            font-size: 36px;
+            font-weight: 800;
+            text-align: center;
         }
 
         .auth-container p {
-            color: #777;
-            margin-bottom: 30px;
+            color: #555;
+            margin-bottom: 36px;
+            font-size: 16px;
+            text-align: center;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 26px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
+            margin-bottom: 11px;
+            font-weight: 700;
             font-size: 14px;
+            color: #222;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--border);
-            border-radius: 8px;
+            padding: 16px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 14px;
             font-size: 16px;
-            transition: border-color 0.3s;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            background: white;
+            font-weight: 500;
         }
 
         .form-group input:focus {
             outline: none;
             border-color: var(--primary);
+            box-shadow: 0 0 0 5px rgba(33, 128, 141, 0.15);
+            transform: translateY(-3px);
         }
 
         .btn {
             width: 100%;
-            padding: 14px;
+            padding: 18px;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 800;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: translate(-50%, -50%);
+            transition: width 0.7s, height 0.7s;
+        }
+
+        .btn:active::before {
+            width: 400px;
+            height: 400px;
         }
 
         .btn-primary {
-            background: var(--primary);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
         }
 
         .btn-primary:hover {
-            background: var(--primary-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
         }
 
         .auth-toggle {
             text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
+            margin-top: 28px;
+            font-size: 15px;
         }
 
         .auth-toggle a {
             color: var(--primary);
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 800;
+            position: relative;
+        }
+
+        .auth-toggle a::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), #764ba2);
+            transition: width 0.4s;
+        }
+
+        .auth-toggle a:hover::after {
+            width: 100%;
         }
 
         /* Main App */
@@ -169,96 +292,157 @@ body {
             display: none;
             flex-direction: column;
             min-height: 100vh;
+            position: relative;
+            z-index: 2;
         }
 
         /* Header */
         header {
-            background: var(--primary);
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
-            padding: 16px 20px;
+            padding: 22px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
         }
 
         header h1 {
-            font-size: 20px;
-            font-weight: 600;
+            font-size: 24px;
+            font-weight: 800;
+            text-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.5px;
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 18px;
+        }
+
+        .user-info span {
+            font-weight: 700;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+            font-size: 16px;
         }
 
         .btn-logout {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.25);
             color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            padding: 11px 24px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
         }
 
         /* Main Content */
         main {
             flex: 1;
-            padding: 20px;
-            max-width: 1200px;
+            padding: 40px 24px;
+            max-width: 1300px;
             width: 100%;
             margin: 0 auto;
         }
 
-        /* Panic Button */
+        /* Panic Button Section */
         .panic-section {
             text-align: center;
-            padding: 40px 20px;
+            padding: 70px 24px;
         }
 
         .panic-button {
-            width: 200px;
-            height: 200px;
+            width: 240px;
+            height: 240px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--danger), #E74C3C);
+            background: linear-gradient(135deg, #ff1744, #c0152f, #e74c3c);
             border: none;
             color: white;
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 28px;
+            font-weight: 900;
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(192, 21, 47, 0.3);
-            transition: all 0.3s;
+            box-shadow: 
+                0 25px 70px rgba(192, 21, 47, 0.6),
+                0 0 0 0 rgba(255, 23, 68, 0.8),
+                inset 0 -8px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 
+                    0 25px 70px rgba(192, 21, 47, 0.6),
+                    0 0 0 0 rgba(255, 23, 68, 0.8),
+                    inset 0 -8px 20px rgba(0, 0, 0, 0.3);
+            }
+            50% {
+                box-shadow: 
+                    0 30px 90px rgba(192, 21, 47, 0.7),
+                    0 0 0 25px rgba(255, 23, 68, 0),
+                    inset 0 -8px 20px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        .panic-button::before {
+            content: '';
+            position: absolute;
+            top: -60%;
+            left: -60%;
+            width: 220%;
+            height: 220%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transform: rotate(45deg);
+            animation: shine 4s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-120%) translateY(-120%) rotate(45deg); }
+            100% { transform: translateX(120%) translateY(120%) rotate(45deg); }
         }
 
         .panic-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 15px 40px rgba(192, 21, 47, 0.4);
+            transform: scale(1.12);
+            box-shadow: 
+                0 30px 90px rgba(192, 21, 47, 0.8),
+                0 0 0 0 rgba(255, 23, 68, 0);
         }
 
         .panic-button:active {
-            transform: scale(0.95);
+            transform: scale(1.05);
         }
 
         .panic-button.holding {
-            animation: pulse 0.5s infinite;
+            animation: pulse-intense 0.5s infinite, pulse-glow 3s ease-in-out infinite;
         }
 
-        @keyframes pulse {
+        @keyframes pulse-intense {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.2); }
         }
 
         .hold-timer {
             position: absolute;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 14px;
+            font-size: 17px;
             opacity: 0;
+            transition: opacity 0.4s;
         }
 
         .panic-button.holding .hold-timer {
@@ -266,115 +450,202 @@ body {
         }
 
         .panic-instruction {
-            margin-top: 20px;
-            color: #777;
-            font-size: 14px;
+            margin-top: 32px;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 16px;
+            font-weight: 600;
+            text-shadow: 0 3px 15px rgba(0, 0, 0, 0.4);
         }
 
         /* Quick Actions */
         .quick-actions {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 16px;
-            margin-top: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 24px;
+            margin-top: 56px;
         }
 
         .action-btn {
-            padding: 20px;
-            background: white;
-            border: 2px solid var(--border);
-            border-radius: 12px;
+            padding: 32px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(25px);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
         }
 
         .action-btn:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-8px);
+            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.25);
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .action-btn .icon {
-            font-size: 32px;
-            margin-bottom: 8px;
+            font-size: 46px;
+            margin-bottom: 14px;
+            filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
         }
 
         .action-btn .label {
-            font-weight: 600;
-            font-size: 14px;
+            font-weight: 800;
+            font-size: 16px;
+            color: white;
+            text-shadow: 0 3px 15px rgba(0, 0, 0, 0.4);
         }
 
         /* Map Section */
         #map {
             width: 100%;
-            height: 400px;
-            border-radius: 12px;
-            margin-top: 40px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            height: 480px;
+            border-radius: 24px;
+            margin-top: 56px;
+            box-shadow: 
+                0 25px 70px rgba(0, 0, 0, 0.35),
+                0 0 0 1px rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+            border: 4px solid rgba(255, 255, 255, 0.3);
         }
 
         /* Contacts Section */
         .contacts-section {
-            margin-top: 40px;
+            margin-top: 56px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(25px);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.25);
         }
 
         .contacts-section h2 {
-            margin-bottom: 20px;
+            margin-bottom: 28px;
+            color: white;
+            font-size: 28px;
+            font-weight: 800;
+            text-shadow: 0 3px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .contacts-section h3 {
+            color: white;
+            font-size: 20px;
+            margin-bottom: 18px;
+            font-weight: 700;
+        }
+
+        #add-contact-form {
+            margin-bottom: 36px;
+            display: grid;
+            gap: 14px;
+        }
+
+        #add-contact-form input {
+            padding: 16px 22px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 14px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.95);
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        #add-contact-form input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 5px rgba(33, 128, 141, 0.25);
         }
 
         .contact-list {
             display: grid;
-            gap: 12px;
+            gap: 18px;
         }
 
         .contact-item {
-            background: white;
-            padding: 16px;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 24px;
+            border-radius: 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 2px solid var(--border);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.4s;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .contact-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
         }
 
         .contact-info h3 {
-            font-size: 16px;
-            margin-bottom: 4px;
+            font-size: 18px;
+            margin-bottom: 7px;
+            color: #222;
         }
 
         .contact-info p {
-            font-size: 14px;
-            color: #777;
+            font-size: 15px;
+            color: #555;
+            font-weight: 500;
         }
 
         .btn-call {
-            background: var(--success);
+            background: linear-gradient(135deg, var(--success), #38a169);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
+            padding: 14px 28px;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 800;
+            font-size: 15px;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(71, 203, 124, 0.4);
+        }
+
+        .btn-call:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(71, 203, 124, 0.5);
         }
 
         /* Toast Notifications */
         .toast {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #333;
+            bottom: 40px;
+            right: 40px;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(25px);
             color: white;
-            padding: 16px 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            padding: 20px 32px;
+            border-radius: 16px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
             z-index: 1000;
-            animation: slideIn 0.3s ease-out;
+            animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            font-weight: 700;
+            border: 2px solid rgba(255, 255, 255, 0.15);
         }
 
-        @keyframes slideIn {
+        @keyframes slideInRight {
             from {
-                transform: translateX(400px);
+                transform: translateX(500px);
                 opacity: 0;
             }
             to {
@@ -383,16 +654,41 @@ body {
             }
         }
 
-        .toast.success { background: var(--success); }
-        .toast.error { background: var(--danger); }
-        .toast.warning { background: #F39C12; }
+        .toast.success { background: linear-gradient(135deg, var(--success), #38a169); }
+        .toast.error { background: linear-gradient(135deg, var(--danger), #c0152f); }
+        .toast.warning { background: linear-gradient(135deg, #F39C12, #e67e22); }
+
+        /* Network Status */
+        .network-status {
+            position: fixed;
+            top: 100px;
+            right: 28px;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 800;
+            z-index: 100;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .network-status.online {
+            background: rgba(71, 203, 124, 0.95);
+            color: white;
+        }
+
+        .network-status.offline {
+            background: rgba(192, 21, 47, 0.95);
+            color: white;
+        }
 
         /* Responsive */
         @media (max-width: 768px) {
             .panic-button {
-                width: 160px;
-                height: 160px;
-                font-size: 20px;
+                width: 200px;
+                height: 200px;
+                font-size: 24px;
             }
 
             .quick-actions {
@@ -400,39 +696,59 @@ body {
             }
 
             #map {
-                height: 300px;
+                height: 380px;
+            }
+
+            header {
+                padding: 18px 22px;
+            }
+
+            header h1 {
+                font-size: 20px;
+            }
+
+            .contacts-section {
+                padding: 28px;
+            }
+
+            .auth-container {
+                padding: 36px 28px;
             }
         }
 
-        /* Online/Offline Indicator */
-        .network-status {
-            position: fixed;
-            top: 70px;
-            right: 20px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            z-index: 100;
-        }
+        @media (max-width: 480px) {
+            main {
+                padding: 28px 18px;
+            }
 
-        .network-status.online {
-            background: var(--success);
-            color: white;
-        }
+            .panic-section {
+                padding: 50px 18px;
+            }
 
-        .network-status.offline {
-            background: var(--danger);
-            color: white;
+            .toast {
+                right: 18px;
+                left: 18px;
+                bottom: 28px;
+            }
+
+            .panic-button {
+                width: 170px;
+                height: 170px;
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 <body>
-<body>
+    <!-- Particles Background -->
+    <div id="particles-js"></div>
+    
     <audio id="siren-audio" src="siren.mp3" preload="auto"></audio>
+    
     <!-- Loading Screen -->
     <div id="loading-screen">
-        <p style="margin-top: 20px; color: var(--primary); font-weight: 600;">Loading SAFE-PING+...</p>
+        <div class="spinner"></div>
+        <p style="margin-top: 24px; color: white; font-weight: 700; font-size: 18px;">Loading SAFE-PING+...</p>
     </div>
 
     <!-- Auth Screen -->
@@ -530,13 +846,13 @@ body {
             <!-- Emergency Contacts -->
             <div class="contacts-section">
                 <h2>Emergency Contacts</h2>
-                             <h3>Add Emergency Contact</h3>
-                             <form id="add-contact-form" style="margin-bottom:20px;">
-                                 <input type="text" id="contact-name" placeholder="Name" required style="margin-right:5px; margin-bottom:5px;" />
-                                 <input type="text" id="contact-phone" placeholder="Phone (+91...)" required style="margin-right:5px; margin-bottom:5px;" />
-                                 <input type="text" id="contact-relation" placeholder="Relation (e.g. Mom)" required style="margin-bottom:5px;" />
-                                 <button type="submit" class="btn btn-primary" style="width:auto;">Add Contact</button>
-                             </form>
+                <h3>Add Emergency Contact</h3>
+                <form id="add-contact-form">
+                    <input type="text" id="contact-name" placeholder="Name" required />
+                    <input type="text" id="contact-phone" placeholder="Phone (+91...)" required />
+                    <input type="text" id="contact-relation" placeholder="Relation (e.g. Mom)" required />
+                    <button type="submit" class="btn btn-primary">Add Contact</button>
+                </form>
                 <div class="contact-list" id="contact-list">
                     <div class="contact-item">
                         <div class="contact-info">
@@ -550,16 +866,34 @@ body {
 
     <!-- Firebase Config & App Logic -->
     <script>
-        // Firebase Configuration - REPLACE WITH YOUR CREDENTIALS
-        const firebaseConfig = {
-  apiKey: "AIzaSyCqTWmP9in6KyigtujSrwpZZQQLUj-Hf_I",
-  authDomain: "safe-ping-plus.firebaseapp.com",
-  projectId: "safe-ping-plus",
-  storageBucket: "safe-ping-plus.firebasestorage.app",
-  messagingSenderId: "877033086892",
-  appId: "1:877033086892:web:e61564a4699bdd1cfe2409"
-};
+        // Initialize Particles
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: '#ffffff' },
+                shape: { type: 'circle' },
+                opacity: { value: 0.5, random: false },
+                size: { value: 3, random: true },
+                line_linked: { enable: true, distance: 150, color: '#ffffff', opacity: 0.4, width: 1 },
+                move: { enable: true, speed: 2, direction: 'none', random: false, straight: false, out_mode: 'out', bounce: false }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' }, resize: true },
+                modes: { repulse: { distance: 100, duration: 0.4 }, push: { particles_nb: 4 } }
+            },
+            retina_detect: true
+        });
 
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqTWmP9in6KyigtujSrwpZZQQLUj-Hf_I",
+            authDomain: "safe-ping-plus.firebaseapp.com",
+            projectId: "safe-ping-plus",
+            storageBucket: "safe-ping-plus.firebasestorage.app",
+            messagingSenderId: "877033086892",
+            appId: "1:877033086892:web:e61564a4699bdd1cfe2409"
+        };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -578,8 +912,6 @@ body {
         const loginForm = document.getElementById('login-form');
         const signupForm = document.getElementById('signup-form');
         const panicBtn = document.getElementById('panic-btn');
-        
-
 
         // Check Auth State
         auth.onAuthStateChanged((user) => {
@@ -665,16 +997,12 @@ body {
             const phone = document.getElementById('contact-phone').value.trim();
             const relation = document.getElementById('contact-relation').value.trim();
   
-            // Validation
             if (!currentUser) return showToast('Please login first!', 'error');
             if (!name || !phone || !relation) return showToast('All fields are required!', 'warning');
             if (!/^\+\d{10,15}$/.test(phone)) return showToast('Use international format like +91...', 'error');
   
             try {
-                // Unique ID for each contact (timestamp)
                 const contactId = Date.now().toString();
-  
-                // Write to Firebase Realtime Database
                 await database.ref(`users/${currentUser.uid}/emergencyContacts/${contactId}`).set({
                     name,
                     phone,
@@ -713,7 +1041,6 @@ body {
                     map.setCenter(userLocation);
                     marker.setPosition(userLocation);
                     
-                    // Save to Firebase
                     database.ref(`users/${currentUser.uid}/location`).set({
                         ...userLocation,
                         timestamp: Date.now()
@@ -756,7 +1083,12 @@ body {
 
         function triggerPanic() {
             showToast('🚨 EMERGENCY ALERT SENT!', 'error');
-            // Send to backend
+            const audio = document.getElementById('siren-audio');
+            if (audio) {
+                audio.currentTime = 0;
+                audio.volume = 1.0;
+                audio.play();
+            }
             fetch('http://localhost:5000/api/emergency/panic', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -798,7 +1130,7 @@ body {
                         `;
                     });
                 } else {
-                    list.innerHTML = '<p>No emergency contacts added yet.</p>';
+                    list.innerHTML = '<p style="color: white;">No emergency contacts added yet.</p>';
                 }
             });
         }
@@ -835,17 +1167,16 @@ body {
                 .catch(err => console.error('SW registration failed:', err));
         }
         
-document.getElementById('siren-btn').addEventListener('click', function() {
-  const audio = document.getElementById('siren-audio');
-  if (audio) {
-    audio.currentTime = 0;
-    audio.volume = 1.0;
-    audio.play()
-  } else {
-    alert('Audio element not found!');
-  }
-});
-
+        // Siren button
+        document.getElementById('siren-btn').addEventListener('click', function() {
+            const audio = document.getElementById('siren-audio');
+            if (audio) {
+                audio.currentTime = 0;
+                audio.volume = 1.0;
+                audio.play();
+                showToast('🔊 Siren activated!', 'warning');
+            }
+        });
     </script>
 </body>
 </html>
