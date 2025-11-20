@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SAFE-PING+ - Women safety app with emergency panic button and real-time tracking">
+    <meta name="theme-color" content="#21808D">
+    
+    <title>SAFE-PING+ | Women Safety App</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <!-- Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBNYUcZt-Y6i3mNHUMsmeRg1QM6BR3E-dg&libraries=places"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #21808D;
+            --primary-hover: #1D7480;
+            --danger: #C0152F;
+            --danger-hover: #A01127;
+            --success: #47CB7C;
+            --bg-light: #FCFCF9;
+            --bg-dark: #1F2121;
+            --text-light: #134252;
+            --text-dark: #F5F5F5;
+            --border: rgba(94, 82, 64, 0.2);
+        }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-light);
+    color: var(--text-light);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    
+}
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(33, 128, 141, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Auth Screen */
+        #auth-screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            max-width: 400px;
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .auth-container h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .auth-container p {
+            color: #777;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .auth-toggle a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Main App */
+        #app-screen {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-logout {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            padding: 20px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Panic Button */
+        .panic-section {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .panic-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--danger), #E74C3C);
+            border: none;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(192, 21, 47, 0.3);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panic-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(192, 21, 47, 0.4);
+        }
+
+        .panic-button:active {
+            transform: scale(0.95);
+        }
+
+        .panic-button.holding {
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .hold-timer {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            opacity: 0;
+        }
+
+        .panic-button.holding .hold-timer {
+            opacity: 1;
+        }
+
+        .panic-instruction {
+            margin-top: 20px;
+            color: #777;
+            font-size: 14px;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-top: 40px;
+        }
+
+        .action-btn {
+            padding: 20px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .action-btn .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .action-btn .label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Map Section */
+        #map {
+            width: 100%;
+            height: 400px;
+            border-radius: 12px;
+            margin-top: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        /* Contacts Section */
+        .contacts-section {
+            margin-top: 40px;
+        }
+
+        .contacts-section h2 {
+            margin-bottom: 20px;
+        }
+
+        .contact-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .contact-item {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid var(--border);
+        }
+
+        .contact-info h3 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .contact-info p {
+            font-size: 14px;
+            color: #777;
+        }
+
+        .btn-call {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        .toast.warning { background: #F39C12; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .panic-button {
+                width: 160px;
+                height: 160px;
+                font-size: 20px;
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            #map {
+                height: 300px;
+            }
+        }
+
+        /* Online/Offline Indicator */
+        .network-status {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 100;
+        }
+
+        .network-status.online {
+            background: var(--success);
+            color: white;
+        }
+
+        .network-status.offline {
+            background: var(--danger);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<body>
+    <audio id="siren-audio" src="siren.mp3" preload="auto"></audio>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <p style="margin-top: 20px; color: var(--primary); font-weight: 600;">Loading SAFE-PING+...</p>
+    </div>
+
+    <!-- Auth Screen -->
+    <div id="auth-screen">
+        <div class="auth-container">
+            <h1>🛡️ SAFE-PING+</h1>
+            <p>Your personal safety companion</p>
+
+            <!-- Login Form -->
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <div class="auth-toggle">
+                    Don't have an account? <a href="#" id="show-signup">Sign up</a>
+                </div>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signup-form" style="display: none;">
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" required placeholder="Jane Doe">
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" required placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" required placeholder="••••••••" minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary">Sign Up</button>
+                <div class="auth-toggle">
+                    Already have an account? <a href="#" id="show-login">Login</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App Screen -->
+    <div id="app-screen">
+        <!-- Network Status -->
+        <div class="network-status online" id="network-status">● Online</div>
+
+        <!-- Header -->
+        <header>
+            <h1>🛡️ SAFE-PING+</h1>
+            <div class="user-info">
+                <span id="user-name">User</span>
+                <button class="btn-logout" id="logout-btn">Logout</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Panic Button Section -->
+            <div class="panic-section">
+                <button class="panic-button" id="panic-btn">
+                    <span>🚨<br>PANIC<br>BUTTON</span>
+                    <div class="hold-timer" id="hold-timer">Hold for <span id="timer-count">3</span>s</div>
+                </button>
+                <p class="panic-instruction">Hold for 3 seconds to activate emergency alert</p>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div class="action-btn" id="siren-btn">
+                    <div class="icon">🚨</div>
+                    <div class="label">Siren</div>
+                </div>
+                <div class="action-btn" id="location-btn">
+                    <div class="icon">📍</div>
+                    <div class="label">Share Location</div>
+                </div>
+                <div class="action-btn" id="fake-call-btn">
+                    <div class="icon">📞</div>
+                    <div class="label">Fake Call</div>
+                </div>
+                <div class="action-btn" id="flashlight-btn">
+                    <div class="icon">🔦</div>
+                    <div class="label">Flashlight</div>
+                </div>
+            </div>
+
+            <!-- Map -->
+            <div id="map"></div>
+
+            <!-- Emergency Contacts -->
+            <div class="contacts-section">
+                <h2>Emergency Contacts</h2>
+                             <h3>Add Emergency Contact</h3>
+                             <form id="add-contact-form" style="margin-bottom:20px;">
+                                 <input type="text" id="contact-name" placeholder="Name" required style="margin-right:5px; margin-bottom:5px;" />
+                                 <input type="text" id="contact-phone" placeholder="Phone (+91...)" required style="margin-right:5px; margin-bottom:5px;" />
+                                 <input type="text" id="contact-relation" placeholder="Relation (e.g. Mom)" required style="margin-bottom:5px;" />
+                                 <button type="submit" class="btn btn-primary" style="width:auto;">Add Contact</button>
+                             </form>
+                <div class="contact-list" id="contact-list">
+                    <div class="contact-item">
+                        <div class="contact-info">
+                            <h3>Loading contacts...</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase Config & App Logic -->
+    <script>
+        // Firebase Configuration - REPLACE WITH YOUR CREDENTIALS
+        const firebaseConfig = {
+  apiKey: "AIzaSyCqTWmP9in6KyigtujSrwpZZQQLUj-Hf_I",
+  authDomain: "safe-ping-plus.firebaseapp.com",
+  projectId: "safe-ping-plus",
+  storageBucket: "safe-ping-plus.firebasestorage.app",
+  messagingSenderId: "877033086892",
+  appId: "1:877033086892:web:e61564a4699bdd1cfe2409"
+};
+
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        let currentUser = null;
+        let userLocation = null;
+        let map = null;
+        let marker = null;
+
+        // DOM Elements
+        const loadingScreen = document.getElementById('loading-screen');
+        const authScreen = document.getElementById('auth-screen');
+        const appScreen = document.getElementById('app-screen');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const panicBtn = document.getElementById('panic-btn');
+        
+
+
+        // Check Auth State
+        auth.onAuthStateChanged((user) => {
+            loadingScreen.style.display = 'none';
+            if (user) {
+                currentUser = user;
+                showApp();
+            } else {
+                authScreen.style.display = 'flex';
+            }
+        });
+
+        // Auth Toggle
+        document.getElementById('show-signup').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'block';
+        });
+
+        document.getElementById('show-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            signupForm.style.display = 'none';
+            loginForm.style.display = 'block';
+        });
+
+        // Login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                showToast('Login successful!', 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        // Signup
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            
+            try {
+                const result = await auth.createUserWithEmailAndPassword(email, password);
+                await result.user.updateProfile({ displayName: name });
+                await database.ref(`users/${result.user.uid}`).set({
+                    name,
+                    email,
+                    createdAt: Date.now()
+                });
+                showToast('Account created successfully!', 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            auth.signOut();
+            authScreen.style.display = 'flex';
+            appScreen.style.display = 'none';
+        });
+
+        // Show App
+        function showApp() {
+            authScreen.style.display = 'none';
+            appScreen.style.display = 'flex';
+            document.getElementById('user-name').textContent = currentUser.displayName || 'User';
+            initMap();
+            getLocation();
+            loadContacts();
+        }
+    
+        // Add Emergency Contact Form Handler
+        document.getElementById('add-contact-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+  
+            const name = document.getElementById('contact-name').value.trim();
+            const phone = document.getElementById('contact-phone').value.trim();
+            const relation = document.getElementById('contact-relation').value.trim();
+  
+            // Validation
+            if (!currentUser) return showToast('Please login first!', 'error');
+            if (!name || !phone || !relation) return showToast('All fields are required!', 'warning');
+            if (!/^\+\d{10,15}$/.test(phone)) return showToast('Use international format like +91...', 'error');
+  
+            try {
+                // Unique ID for each contact (timestamp)
+                const contactId = Date.now().toString();
+  
+                // Write to Firebase Realtime Database
+                await database.ref(`users/${currentUser.uid}/emergencyContacts/${contactId}`).set({
+                    name,
+                    phone,
+                    relation,
+                    addedAt: Date.now()
+                });
+  
+                showToast('✅ Contact added successfully!', 'success');
+                document.getElementById('add-contact-form').reset();
+                loadContacts();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        // Initialize Google Map
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 28.6139, lng: 77.2090 },
+                zoom: 13
+            });
+            marker = new google.maps.Marker({
+                map: map,
+                title: 'Your Location'
+            });
+        }
+
+        // Get User Location
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition((position) => {
+                    userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    map.setCenter(userLocation);
+                    marker.setPosition(userLocation);
+                    
+                    // Save to Firebase
+                    database.ref(`users/${currentUser.uid}/location`).set({
+                        ...userLocation,
+                        timestamp: Date.now()
+                    });
+                });
+            }
+        }
+
+        // Panic Button
+        let holdTimer = null;
+        let holdCount = 3;
+
+        panicBtn.addEventListener('mousedown', startHold);
+        panicBtn.addEventListener('touchstart', startHold);
+        panicBtn.addEventListener('mouseup', cancelHold);
+        panicBtn.addEventListener('touchend', cancelHold);
+        panicBtn.addEventListener('mouseleave', cancelHold);
+
+        function startHold() {
+            panicBtn.classList.add('holding');
+            holdCount = 3;
+            document.getElementById('timer-count').textContent = holdCount;
+            
+            holdTimer = setInterval(() => {
+                holdCount--;
+                document.getElementById('timer-count').textContent = holdCount;
+                
+                if (holdCount === 0) {
+                    triggerPanic();
+                    cancelHold();
+                }
+            }, 1000);
+        }
+
+        function cancelHold() {
+            clearInterval(holdTimer);
+            panicBtn.classList.remove('holding');
+            holdCount = 3;
+        }
+
+        function triggerPanic() {
+            showToast('🚨 EMERGENCY ALERT SENT!', 'error');
+            // Send to backend
+            fetch('http://localhost:5000/api/emergency/panic', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: currentUser.uid,
+                    location: userLocation
+                })
+            });
+        }
+
+        // Quick Actions
+        document.getElementById('location-btn').addEventListener('click', () => {
+            if (userLocation) {
+                const url = `https://maps.google.com/?q=${userLocation.lat},${userLocation.lng}`;
+                navigator.share({ title: 'My Location', url }).catch(() => {
+                    navigator.clipboard.writeText(url);
+                    showToast('Location link copied!', 'success');
+                });
+            }
+        });
+
+        // Load Contacts
+        function loadContacts() {
+            database.ref(`users/${currentUser.uid}/emergencyContacts`).on('value', (snapshot) => {
+                const contacts = snapshot.val();
+                const list = document.getElementById('contact-list');
+                list.innerHTML = '';
+                
+                if (contacts) {
+                    Object.entries(contacts).forEach(([id, contact]) => {
+                        list.innerHTML += `
+                            <div class="contact-item">
+                                <div class="contact-info">
+                                    <h3>${contact.name}</h3>
+                                    <p>${contact.phone} • ${contact.relation}</p>
+                                </div>
+                                <button class="btn-call" onclick="window.location.href='tel:${contact.phone}'">Call</button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    list.innerHTML = '<p>No emergency contacts added yet.</p>';
+                }
+            });
+        }
+
+        // Toast Notifications
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Network Status
+        window.addEventListener('online', () => {
+            const status = document.getElementById('network-status');
+            status.className = 'network-status online';
+            status.textContent = '● Online';
+        });
+
+        window.addEventListener('offline', () => {
+            const status = document.getElementById('network-status');
+            status.className = 'network-status offline';
+            status.textContent = '● Offline';
+        });
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(() => console.log('Service Worker registered'))
+                .catch(err => console.error('SW registration failed:', err));
+        }
+        
+document.getElementById('siren-btn').addEventListener('click', function() {
+  const audio = document.getElementById('siren-audio');
+  if (audio) {
+    audio.currentTime = 0;
+    audio.volume = 1.0;
+    audio.play()
+  } else {
+    alert('Audio element not found!');
+  }
+});
+
+    </script>
+</body>
+</html>
