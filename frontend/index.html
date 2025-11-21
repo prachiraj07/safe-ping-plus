@@ -1870,15 +1870,102 @@
             }
         });
 
-        document.getElementById('location-btn').addEventListener('click', () => {
-            if (userLocation) {
-                const url = `https://maps.google.com/?q=${userLocation.lat},${userLocation.lng}`;
-                if (navigator.share) {
-                    navigator.share({ title: 'My Location', url }).catch(e => console.log(e));
-                } else {
-                    navigator.clipboard.writeText(url);
-                    showToast('📍 Location link copied!', 'success');
+        document.getElementById('location-btn').addEventListener('click', async () => {
+            // Use map location directly (works on HTTP without secure origin issues)
+            if (!userLocation || !userLocation.lat || !userLocation.lng) {
+                showToast('❌ Please wait for map to load your location', 'error');
+                return;
+            }
+            
+            showToast('📍 Preparing location to share...', 'info');
+            
+            const lat = userLocation.lat;
+            const lng = userLocation.lng;
+            
+            // Create shareable message
+            const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
+            const message = `🚨 I'm sharing my location with you!\n\n📍 Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}\n\n🗺️ View on Google Maps:\n${googleMapsUrl}\n\n⏰ Shared at: ${new Date().toLocaleString()}`;
+            
+            // Try native share API (works on mobile and modern browsers)
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: '🚨 My Location - SafePing',
+                        text: message,
+                        url: googleMapsUrl
+                    });
+                    showToast('✅ Location shared successfully!', 'success');
+                } catch (shareError) {
+                    if (shareError.name !== 'AbortError') {
+                        // If share was cancelled, don't show error
+                        console.log('Share cancelled or failed:', shareError);
+                        // Fall back to showing modal
+                        showShareModal(lat, lng, googleMapsUrl, message);
+                    }
                 }
+            } else {
+                // Fallback: Show share modal with options
+                showShareModal(lat, lng, googleMapsUrl, message);
+            }
+            
+            function showShareModal(lat, lng, googleMapsUrl, message) {
+                // Create a share modal with options
+                const shareModal = document.createElement('div');
+                shareModal.id = 'share-location-modal';
+                shareModal.innerHTML = `
+                    <div class="modal-overlay" style="display: flex; align-items: center; justify-content: center;">
+                        <div class="modal-content" style="max-width: 500px; padding: 30px; text-align: center;">
+                            <h2 style="color: #21808D; margin-bottom: 20px;">📍 Share Your Location</h2>
+                            <p style="margin-bottom: 20px;">Choose a platform to share your location:</p>
+                            
+                            <div style="background: #f5f5f5; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left; font-size: 14px;">
+                                <strong>Location Info:</strong><br>
+                                📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}<br>
+                                🗺️ <a href="${googleMapsUrl}" target="_blank" style="color: #21808D;">View on Google Maps</a>
+                            </div>
+                            
+                            <h3 style="margin: 20px 0 15px 0; color: #333;">Share via:</h3>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+                                <a href="https://wa.me/?text=${encodeURIComponent(message)}" target="_blank" class="btn btn-primary" style="background: #25D366; text-decoration: none; padding: 12px;">
+                                    WhatsApp
+                                </a>
+                                <a href="sms:?body=${encodeURIComponent(message)}" class="btn btn-primary" style="background: #007AFF; text-decoration: none; padding: 12px;">
+                                    SMS
+                                </a>
+                                <a href="mailto:?subject=My%20Location&body=${encodeURIComponent(message)}" class="btn btn-primary" style="background: #EA4335; text-decoration: none; padding: 12px;">
+                                    Email
+                                </a>
+                                <a href="https://telegram.me/share/url?url=${encodeURIComponent(googleMapsUrl)}&text=${encodeURIComponent(message)}" target="_blank" class="btn btn-primary" style="background: #0088CC; text-decoration: none; padding: 12px;">
+                                    Telegram
+                                </a>
+                                <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}" target="_blank" class="btn btn-primary" style="background: #1DA1F2; text-decoration: none; padding: 12px;">
+                                    Twitter
+                                </a>
+                                <a href="fb-messenger://share/?link=${encodeURIComponent(googleMapsUrl)}" class="btn btn-primary" style="background: #0084FF; text-decoration: none; padding: 12px;">
+                                    Messenger
+                                </a>
+                            </div>
+                            
+                            <button class="btn btn-secondary" id="close-share-modal" style="width: 100%; padding: 12px;">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(shareModal);
+                
+                document.getElementById('close-share-modal').addEventListener('click', () => {
+                    shareModal.remove();
+                });
+                
+                shareModal.querySelector('.modal-overlay').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('modal-overlay')) {
+                        shareModal.remove();
+                    }
+                });
+                
+                showToast('📍 Choose a platform to share', 'info');
             }
         });
 
